@@ -1,6 +1,7 @@
 # Importing Pygame
 import pygame
 import random
+import math
 
 # Initializate pygame
 pygame.init()
@@ -23,7 +24,7 @@ pygame.display.set_icon(icon)
 screen = pygame.display.set_mode(size)
 
 # bg image
-background = pygame.image.load("Sprites\Sprites\starfield.png")
+background = pygame.image.load("9-2-space-picture.png")
 # player function
 player_x = 365
 player_y = 520
@@ -36,7 +37,7 @@ def player (x,y):
 enemy_x = random.randint(0,800)
 enemy_y = random.randint(50,150)
 enemy_img = pygame.image.load("Sprites\Sprites\ship_3.png")
-enemy_x_change = 0
+enemy_x_change = 4
 enemy_y_change = 40
 def enemy (x,y):
     screen.blit(enemy_img, (x,y))
@@ -52,12 +53,21 @@ bullet_state = True
 def fire(x,y):
     global bullet_state
     bullet_state = False
-    screen.blit(bullet_img)
+    screen.blit(bullet_img,(x,y))
+# Collision
+def is_collision (b_x, b_y, e_x, e_y):
+    distance = math.sqrt((e_x - b_x)**2 + (e_y - b_y)**2)
+    if distance < 27:
+        return True
+    else:
+        return False
+
 
 
 
 # game loop
 running = True
+clock = pygame.time.Clock()
 
 
 
@@ -70,8 +80,10 @@ while running:
                 player_x_change = -1
             if event.key == pygame.K_RIGHT:
                 player_x_change = 1
-            if event.key == pygame.K_SPACE:
-                fire(player_x,bullet_y)
+            if event.key == pygame.K_SPACE and bullet_state == True:
+                bullet_x = player_x
+                fire(player_x, bullet_y)
+                bullet_state = False
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT:
                 player_x_change = -0
@@ -89,23 +101,39 @@ while running:
     elif player_x >= 736:
         player_x = 736
     # bullet blit
+
     if bullet_state == False:
-        fire(player_x, bullet_y)
+        fire(bullet_x, bullet_y)
         bullet_y -= bullet_y_change
-        # Enemy blit
-        enemy(enemy_x,enemy_y)
+
+    if bullet_y <= 0:
+        bullet_y = 480
+        bullet_state = True
+    collision = is_collision(bullet_x, bullet_y, enemy_x, enemy_y)
+    if collision:
+        bullet_y = 480
+        bullet_state = True
+        enemy_x = random.randint(0, 735)
+        enemy_y = random.randint(50, 150)
+
+    if bullet_y <= 0:
+        bullet_y = 480
+        bullet_state = True
+    # Enemy blit
+    enemy(enemy_x,enemy_y)
 
         #enemy movements
-        enemy_x += enemy_x_change
-        if enemy_x <= 0:
-            enemy_x_change = 4
-            enemy_y += enemy_y_change
+    enemy_x += enemy_x_change
+    if enemy_x <= 0:
+        enemy_x_change = 4
+        enemy_y += enemy_y_change
 
-        elif enemy_x >= 736 :
-            enemy_x_change = -4
-            enemy_y += enemy_y_change
+    elif enemy_x >= 736 :
+        enemy_x_change = -4
+        enemy_y += enemy_y_change
 
-    pygame.display.flip()
+    clock.tick(60)
+    pygame.display.update()
 pygame.quit()
 
 
