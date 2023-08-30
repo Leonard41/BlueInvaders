@@ -23,6 +23,20 @@ pygame.display.set_icon(icon)
 # display_screen
 screen = pygame.display.set_mode(size)
 
+# Score font
+score_font = pygame.font.Font("Minecraft.ttf", 32)
+
+# variable score
+score= 0
+
+# position text in screen
+text_x = 10
+text_y = 10
+
+# game over font
+go_x = 200
+go_y = 250
+
 # bg image
 background = pygame.image.load("9-2-space-picture.png")
 # player function
@@ -33,14 +47,22 @@ player_x_change = 0
 def player (x,y):
     screen.blit(player_img, (x,y))
 
+
 # enemy function
-enemy_x = random.randint(0,800)
-enemy_y = random.randint(50,150)
-enemy_img = pygame.image.load("Sprites\Sprites\ship_3.png")
-enemy_x_change = 4
-enemy_y_change = 40
-def enemy (x,y):
-    screen.blit(enemy_img, (x,y))
+enemy_x = []
+enemy_y = []
+enemy_img = []
+enemy_x_change = []
+enemy_y_change = []
+number_enemies = 8
+for item in range(number_enemies):
+    enemy_img.append(pygame.image.load("Sprites\Sprites\ship_3.png"))
+    enemy_x.append(random.randint(0,735))
+    enemy_y.append(random.randint(50,150))
+    enemy_x_change.append(4)
+    enemy_y_change.append(40)
+def enemy (x,y, item):
+    screen.blit(enemy_img[item], (x,y))
 
 #bullet function
 bullet_img = pygame.image.load("Sprites\Sprites\Bala del jugador.png")
@@ -61,6 +83,16 @@ def is_collision (b_x, b_y, e_x, e_y):
         return True
     else:
         return False
+    
+def game_over(x,y):
+        go_text = score_font.render("GAME OVER",True, (40,255,50))
+        screen.blit (go_text, (x,y))
+
+def show_score(x,y):
+        score_text = score_font.render("SCORE:  " + str(score),True, (255,255,255))
+        screen.blit (score_text, (x,y))
+    
+
 
 
 
@@ -77,9 +109,9 @@ while running:
             running = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
-                player_x_change = -1
+                player_x_change = -10
             if event.key == pygame.K_RIGHT:
-                player_x_change = 1
+                player_x_change = 10
             if event.key == pygame.K_SPACE and bullet_state == True:
                 bullet_x = player_x
                 fire(player_x, bullet_y)
@@ -109,29 +141,38 @@ while running:
     if bullet_y <= 0:
         bullet_y = 480
         bullet_state = True
-    collision = is_collision(bullet_x, bullet_y, enemy_x, enemy_y)
-    if collision:
-        bullet_y = 480
-        bullet_state = True
-        enemy_x = random.randint(0, 735)
-        enemy_y = random.randint(50, 150)
-
+    
     if bullet_y <= 0:
         bullet_y = 480
         bullet_state = True
-    # Enemy blit
-    enemy(enemy_x,enemy_y)
+    for item in range ( number_enemies ):
 
-        #enemy movements
-    enemy_x += enemy_x_change
-    if enemy_x <= 0:
-        enemy_x_change = 4
-        enemy_y += enemy_y_change
+        if enemy_y[item] >= 440:
+            for j in range (number_enemies):
+                enemy_y[j] = 2000
+        collision = is_collision(bullet_x, bullet_y, enemy_x[item], enemy_y[item])
+        if collision:
+            bullet_y = 480
+            bullet_state = True
+            score += 200
+            enemy_x[item] = random.randint(0, 735)
+            enemy_y[item] = random.randint(50, 150)
+            
 
-    elif enemy_x >= 736 :
-        enemy_x_change = -4
-        enemy_y += enemy_y_change
+        # Enemy blit
+        enemy(enemy_x[item],enemy_y[item], item)
 
+            #enemy movements
+        enemy_x[item] += enemy_x_change[item]
+        if enemy_x[item] <= 0:
+            enemy_x_change[item] = 4
+            enemy_y[item] += enemy_y_change[item]
+
+        elif enemy_x[item] >= 736 :
+            enemy_x_change[item] = -4
+            enemy_y[item] += enemy_y_change[item]
+
+    show_score(text_x, text_y)
     clock.tick(60)
     pygame.display.update()
 pygame.quit()
